@@ -1,25 +1,26 @@
 package com.real.springfmk.entitys;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.LinkedHashSet;
+import java.util.List;
 import java.util.Set;
-
-import com.fasterxml.jackson.annotation.JsonManagedReference;
 
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
-import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.JoinTable;
+import jakarta.persistence.ManyToMany;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.OrderBy;
 import jakarta.persistence.PrePersist;
 import jakarta.persistence.Table;
-
+@Entity
 @Table(name="tb_users")
-@Entity(name="tb_users")
 public class UserEntity {
 	
 	@Id 
@@ -39,10 +40,19 @@ public class UserEntity {
 	@Column(name="user_data_create",updatable = false)
 	private LocalDateTime userDateCreate;
 	//@JsonProperty(access= JsonProperty.Access.WRITE_ONLY)
-	@JsonManagedReference
-	@OneToMany(mappedBy="user",cascade=CascadeType.ALL,orphanRemoval = true,fetch = FetchType.LAZY)
+	
+	@OneToMany(mappedBy="user",cascade=CascadeType.ALL)
 	@OrderBy("idAtivity ASC")
 	private Set<AtivityEntity> ativities = new LinkedHashSet<>();
+	
+	@ManyToMany
+	@JoinTable(
+		name="tb_user_x_super_power",
+		joinColumns = @JoinColumn(name="lg_user_id"),
+		inverseJoinColumns = @JoinColumn(name="lg_super_power")
+	)
+	List<SuperPowerEntity> powers = new ArrayList<>();
+	
 	
 	@PrePersist
 	protected void onCreate() {
@@ -62,8 +72,18 @@ public class UserEntity {
 	}
 
 
+
+
+
+
+
+
+
+
+
+
 	public UserEntity(Long userId, String userName, String userPassword, String userEmail, LocalDateTime userDateCreate,
-			Set<AtivityEntity> ativities) {
+			Set<AtivityEntity> ativities, List<SuperPowerEntity> powers) {
 		super();
 		this.userId = userId;
 		this.userName = userName;
@@ -71,6 +91,7 @@ public class UserEntity {
 		this.userEmail = userEmail;
 		this.userDateCreate = userDateCreate;
 		this.ativities = ativities;
+		this.powers = powers;
 	}
 
 
@@ -144,6 +165,32 @@ public class UserEntity {
 	public void setAtivities(Set<AtivityEntity> ativities) {
 		this.ativities = ativities;
 	}
+
+
+
+
+
+
+
+
+
+	public List<SuperPowerEntity> getPowers() {
+		return powers;
+	}
+
+
+
+
+
+
+
+
+
+	public void setPowers(List<SuperPowerEntity> powers) {
+		this.powers = powers;
+	}
+	
+	
 
 
 

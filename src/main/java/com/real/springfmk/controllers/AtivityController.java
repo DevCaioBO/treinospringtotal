@@ -1,8 +1,8 @@
 package com.real.springfmk.controllers;
 
-import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -17,10 +17,12 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.real.springfmk.dtos.AtivityDTO;
+import com.real.springfmk.dtos.UserDTO;
 import com.real.springfmk.entitys.AtivityEntity;
 import com.real.springfmk.entitys.UserEntity;
 import com.real.springfmk.repositories.AtivityRepository;
 import com.real.springfmk.repositories.UserRepository;
+import com.real.springfmk.services.UserService;
 
 @RestController
 @RequestMapping("/ativity")
@@ -32,9 +34,14 @@ public class AtivityController {
 	@Autowired
 	private UserRepository userRepo;
 	
+	@Autowired
+	private UserService userService;
+	
+	
+	
 	@GetMapping("/read/{id}")
-	public ResponseEntity<List<UserEntity>> CollectFullDataOfOneAtivity(@PathVariable Long id) {
-		List<UserEntity> ativities = userRepo.findByUserId(id);
+	public ResponseEntity<?> CollectFullDataOfOneAtivity(@PathVariable Long id) {
+		UserDTO ativities = userService.getUserWithAtivities(id);
 		return ResponseEntity.ok(ativities);
 	}
 	
@@ -53,7 +60,11 @@ public class AtivityController {
         newActivity.setUser(user);
 
         AtivityEntity savedActivity = atvRepo.save(newActivity);
-        return ResponseEntity.status(201).body(savedActivity);
+        UserDTO ativities = userService.getUserWithAtivities(userId);
+            
+            return ResponseEntity.ok(ativities);
+		
+       
     }
 
 	

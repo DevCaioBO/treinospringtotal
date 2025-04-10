@@ -1,0 +1,88 @@
+@Service
+public class LivroCacheService {
+
+    private final Map<Long, Livro> cacheLivros = new HashMap<>();
+
+    @Autowired
+    private LivroRepository livroRepository;
+
+    public Livro getLivroPorId(Long id) {
+        // Verifica se o livro já está no cache
+        if (cacheLivros.containsKey(id)) {
+            System.out.println("Retornando do cache...");
+            return cacheLivros.get(id);
+        }
+
+        // Se não estiver, busca no banco e salva no cache
+        Livro livro = livroRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Livro não encontrado"));
+
+        cacheLivros.put(id, livro);
+        return livro;
+    }
+
+    public void atualizarLivroNoCache(Livro livroAtualizado) {
+        cacheLivros.put(livroAtualizado.getId(), livroAtualizado);
+    }
+
+    public void removerLivroDoCache(Long id) {
+        cacheLivros.remove(id);
+    }
+
+    public void limparCache() {
+        cacheLivros.clear();
+    }
+}
+
+
+@RestController
+@RequestMapping("/livros")
+public class LivroController {
+
+    @Autowired
+    private LivroCacheService cacheService;
+
+    @GetMapping("/{id}")
+    public ResponseEntity<Livro> getLivro(@PathVariable Long id) {
+        Livro livro = cacheService.getLivroPorId(id);
+        return ResponseEntity.ok(livro);
+    }
+
+    @PutMapping("/{id}")
+    public ResponseEntity<Void> atualizarLivro(@PathVariable Long id, @RequestBody Livro livroAtualizado) {
+        // Aqui você normalmente atualizaria no banco também
+        cacheService.atualizarLivroNoCache(livroAtualizado);
+        return ResponseEntity.ok().build();
+    }
+}
+
+//maneira spring com concurrencyAbsint: 
+@Service
+public class LivroCacheService {
+
+    private final Map<Long, Livro> cacheLivros = new ConcurrentHashMap<>();
+
+    @Autowired
+    private LivroRepository livroRepository;
+
+    public Livro getLivroPorId(Long id) {
+        return cacheLivros.computeIfAbsent(id, this::buscarDoBanco);
+    }
+
+    private Livro buscarDoBanco(Long id) {
+        return livroRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Livro não encontrado"));
+    }
+
+    public void atualizarLivroNoCache(Livro livroAtualizado) {
+        cacheLivros.put(livroAtualizado.getId(), livroAtualizado);
+    }
+
+    public void removerLivroDoCache(Long id) {
+        cacheLivros.remove(id);
+    }
+
+    public void limparCache() {
+        cacheLivros.clear();
+    }
+}
